@@ -1,0 +1,15 @@
+@media screen and (max-width: 1000px)
+    .awesome-table
+        width: 80% !important
+        font-size: 10pt
+        .table-body .row .column-name 
+            &:is(:nth-last-child(-n+2))
+                position: relative
+                top: 3px
+            
+            &:first-child
+                left: .5rem !important
+
+            & svg
+                width: 20px !important
+                height: 20px !important

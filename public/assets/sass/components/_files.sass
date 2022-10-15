@@ -1,0 +1,70 @@
+@use "sass:map"
+    
+*
+    margin: 0
+    padding: 0
+    font-family: Arial,sans-serif
+    
+body
+    background-color: $background-color
+
+.awesome-table
+    user-select: none
+    width: 70%
+    margin: 2rem auto
+    display: block
+    background-color: map.get($table, "background")
+    padding: 20px
+    border-radius: 25px
+    text-align: center
+    font-weight: normal
+    color: $text-color
+    font-family: Arial, sans-serif
+    .table-header,
+    .table-body .row
+        width: 100%
+        display: flex
+        flex-direction: row
+        margin: 0
+        justify-content: center
+        align-items: center
+        .column-name
+            user-select: none
+            flex-grow: 1
+            width: 33.33%
+    .table-divider
+        border: 2px solid #15202f
+        width: 50%
+        margin: 1rem auto
+    .table-body 
+        margin-top: 2rem
+        font-weight: bold
+        .no-files
+            background-color: #192029
+            padding: 20px
+            border-radius: 50px
+            width: 50%
+            margin: 0 auto
+        .row
+            &:hover
+                background-color: map.get($table, "hover")
+                border-radius: 18px
+                padding: 20px 0 20px 0
+                margin-top: 1rem
+                cursor: pointer
+                transition: background-color 300ms ease-in-out                
+            .column-name
+                &:first-child
+                    flex-grow: 0.8
+                    text-align: left
+                    position: relative
+                    left: 5rem
+                svg, .file-name
+                    display: inline-block
+                    vertical-align: middle
+                svg
+                    $size: 25px
+                    width: $size
+                    height: $size
+                    fill: $text-color
+                    margin-right: .3rem
