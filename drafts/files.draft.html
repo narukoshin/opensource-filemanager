@@ -60,11 +60,11 @@
     <script type="text/javascript">
         let download = (element) => {
             let file_name = element.getAttribute("download-id")
-            alert(file_name)
+            window.open("/download/" + file_name)
         }
         let openFolder = (element) => {
             let folder_name = element.getAttribute("folder-id")
-            alert(folder_name)
+            alert("folder " + folder_name)
         }
         let resize_file_names = () => {
             let w = window.innerWidth

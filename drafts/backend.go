@@ -18,6 +18,8 @@ type Directory_Structure struct {
 	Ext string
 }
 
+var public_directory string = "./folder"
+
 // calculating the actual size of the file to the human readable format
 func CalculateActualSize(FloatSize float64) string {
 	const (
@@ -81,7 +83,7 @@ func UpdateFolder(new_name string) {
 
 func Filemanager_Index(w http.ResponseWriter, r *http.Request) {
 	// getting the files from directory
-	var files []Directory_Structure = LoadFilesFromDirectory("./")
+	var files []Directory_Structure = LoadFilesFromDirectory(public_directory)
 	// passing the files to template
 	data := map[string]interface{}{
 		"Files": files,
@@ -95,8 +97,14 @@ func Filemanager_Index(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func Filemanager_DownloadFile(w http.ResponseWriter, r *http.Request, param martini.Params){
+	var file_name string = filepath.Base(param["name"])
+	w.Header().Set("Content-Disposition", "attachment; filename="+file_name)
+	w.Header().Set("Content-Type", "application/octet-stream")
+	http.ServeFile(w, r, fmt.Sprintf("%s/%s", public_directory, file_name))
+}
+
 func main(){
-	fmt.Println(filepath.Base("../../foldername"))
 	m := martini.Classic()
 	// main page where all the files will appear.
 	m.Get("/", Filemanager_Index)
@@ -109,12 +117,7 @@ func main(){
 		UpdateFolder(folder_name)
 	})
 	// downloading the file from the file manager.
-	m.Get("/download/:name", func(w http.ResponseWriter, r *http.Request, param martini.Params){
-		// this will download the file from the server
-		// this will prevent from LFI attacks.
-		file_name := filepath.Base(param["name"])
-		_ = file_name
-	})
+	m.Get("/download/:name", Filemanager_DownloadFile)
 	// loading the generated css file.
 	m.Get("/global.css", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "global.css")
