@@ -33,11 +33,11 @@ func CalculateActualSize(FloatSize float64) string {
 		gb = mb * 1024
 	)
 	switch {
-		case FloatSize < 100:
+		case FloatSize < 1000:
 			return fmt.Sprintf("%d b", int(FloatSize))
 		case FloatSize < 10000:
 			return fmt.Sprintf("%.2f kb", float64(FloatSize / kb))
-		case FloatSize < 10000000:
+		case FloatSize < 100000000:
 			return fmt.Sprintf("%.2f mb", float64(FloatSize / mb))
 		case FloatSize < 10000000000:
 			return fmt.Sprintf("%.2f gb", float64(FloatSize / gb))
@@ -81,7 +81,6 @@ func LoadFilesFromDirectory(path string) []Directory_Structure {
 // Updating the folder name from which one we will load new files.
 // it's like travelling in the filesystem.
 func UpdateFolder(new_name string) string {
-	fmt.Println(current_directory)
 	if new_name == ".." {
 		// if new_name parameter will be empty then we will set back the default one.
 		// default one is "./" folder
