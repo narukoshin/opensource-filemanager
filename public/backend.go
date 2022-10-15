@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/go-martini/martini"
 )
@@ -80,15 +81,24 @@ func LoadFilesFromDirectory(path string) []Directory_Structure {
 // Updating the folder name from which one we will load new files.
 // it's like travelling in the filesystem.
 func UpdateFolder(new_name string) string {
+	fmt.Println(current_directory)
 	if new_name == ".." {
 		// if new_name parameter will be empty then we will set back the default one.
 		// default one is "./" folder
-		new_name = public_directory
+		// splitting the path to delete the last element
+		splitting := strings.Split(current_directory, "/")
+		index := len(splitting) - 1
+		// deleting the last element
+		removing_last := append(splitting[:index], splitting[index+1:]...)
+		// Building a new name
+		new_name = strings.Join(removing_last, "/")
+
 	} else {
-		new_name = fmt.Sprintf("%s/%s", public_directory, new_name)
+		new_name = fmt.Sprintf("%s/%s", current_directory, new_name)
 	}
 	// ...now we have to somehow change the folder name and load new list of files.
 	current_directory = new_name
+	fmt.Println(new_name)
 	return new_name
 }
 
