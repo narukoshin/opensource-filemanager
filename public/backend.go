@@ -20,9 +20,9 @@ type Directory_Structure struct {
 	Ext string
 }
 
-// striched folder where all the files will be stored in.
+// restricted folder where all the files will be stored in.
 // user shouldn't have access outside the folder.
-var public_directory string = "./uploads"
+var public_directory string = "uploads"
 var current_directory string
 
 // calculating the actual size of the file to the human readable format
@@ -71,6 +71,15 @@ func LoadFilesFromDirectory(path string) []Directory_Structure {
 		}
 		Structure = append(Structure, d)
 	}
+	// Adding a folder go go back to the previous folder
+	if filepath.Base(current_directory) != filepath.Base(public_directory) {
+		previous := Directory_Structure {
+			IsFolder: true,
+			Name: "..",
+		}
+		Structure = append(Structure, previous)
+	}
+	// sorting by type, if it's a folder, then all folders should be at the top and after all folders follows files.
 	sort.SliceStable(Structure, func(i, j int) bool {
 		return Structure[i].IsFolder
 	})
@@ -83,21 +92,31 @@ func LoadFilesFromDirectory(path string) []Directory_Structure {
 func UpdateFolder(new_name string) string {
 	if new_name == ".." {
 		// if new_name parameter will be empty then we will set back the default one.
-		// default one is "./" folder
 		// splitting the path to delete the last element
 		splitting := strings.Split(current_directory, "/")
-		index := len(splitting) - 1
-		// deleting the last element
-		removing_last := append(splitting[:index], splitting[index+1:]...)
-		// Building a new name
-		new_name = strings.Join(removing_last, "/")
-
+		if len(splitting) != 1 {
+			index := len(splitting) - 1
+			// deleting the last element
+			removing_last := append(splitting[:index], splitting[index+1:]...)
+			// Building a new name
+			new_name = strings.Join(removing_last, "/")
+		}
 	} else {
-		new_name = fmt.Sprintf("%s/%s", current_directory, new_name)
+		if len(current_directory) == 0 {
+			current_directory = public_directory
+		}
+		if new_name == "." {
+			new_name = public_directory
+		} else {
+			new_name = fmt.Sprintf("%s/%s", current_directory, new_name)
+		}
 	}
+
 	// ...now we have to somehow change the folder name and load new list of files.
 	current_directory = new_name
-	fmt.Println(new_name)
+	// removing all ".." from the path to fix a bug when user can get outside restricted folder
+	new_name = strings.Replace(new_name, "..", "", -1)
+	// new_name = strings.Replace(new_name, ".", "", -1)
 	return new_name
 }
 
@@ -132,24 +151,12 @@ func Filemanager_UpdateFolder(w http.ResponseWriter, r *http.Request){
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	// this should change the folder and update content with the files from new folder.
 	// this will prevent from LFI attacks.
-	// folder_name := filepath.Base(param["name"])
 	folder_name := filepath.Base(r.Form.Get("folder_name"))
 	// updating the folder name.
 	updated_name := UpdateFolder(folder_name)
 	// getting the files from a new filder
 	new_files := LoadFilesFromDirectory(updated_name)
 	// adding previous folder to the list
-	if filepath.Base(current_directory) != filepath.Base(public_directory) {
-		// adding a previous folder that will allow to travel back to the previous folder
-		previous := Directory_Structure {
-			IsFolder: true,
-			Name: "..",
-		}
-		new_files = append(new_files, previous)
-	}
-	sort.SliceStable(new_files, func(i, j int) bool {
-		return new_files[i].IsFolder
-	})
 	data := map[string]interface{}{
 		"Files": new_files,
 	}
@@ -171,6 +178,10 @@ func main(){
 	// loading the generated css file.
 	m.Get("/assets/css/global.min.css", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "assets/css/global.min.css")
+	})
+	// javascript code
+	m.Get("/assets/js/main.min.js", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "assets/js/main.min.js")
 	})
 	// starting the web server
 	http.ListenAndServe(":8080", m)
