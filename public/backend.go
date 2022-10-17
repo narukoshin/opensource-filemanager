@@ -5,11 +5,17 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 
 	"github.com/go-martini/martini"
+	// I should use sessions to store current_directory value
+	// It seems to be impossible to manage this by using only non-global or struct variables
+	// ...so I should to try to do this by using session variables... that can fix my problem and I will be a step closer to run it on  production.
+	// docs: https://gowebexamples.com/sessions/
+	"github.com/gorilla/sessions"
 )
 
 type Directory_Structure struct {
@@ -23,7 +29,9 @@ type Directory_Structure struct {
 // restricted folder where all the files will be stored in.
 // user shouldn't have access outside the folder.
 var public_directory string = "uploads"
-var current_directory string
+// var current_directory string
+
+var Store *sessions.CookieStore = sessions.NewCookieStore([]byte("secret-password"))
 
 // calculating the actual size of the file to the human readable format
 func CalculateActualSize(FloatSize float64) string {
@@ -55,7 +63,12 @@ func GetFileExt(fileName string) string {
 }
 
 // getting the file and folder list in the specified directory
-func LoadFilesFromDirectory(path string) []Directory_Structure {
+func LoadFilesFromDirectory(path string, session *sessions.Session) ([]Directory_Structure,  bool) {
+	// checking if the folder exists
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		// if the folder doesn't exist
+		return []Directory_Structure{}, false
+	}
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		panic(err)
@@ -72,7 +85,7 @@ func LoadFilesFromDirectory(path string) []Directory_Structure {
 		Structure = append(Structure, d)
 	}
 	// Adding a folder go go back to the previous folder
-	if filepath.Base(current_directory) != filepath.Base(public_directory) {
+	if filepath.Base(session.Values["current_directory"].(string)) != filepath.Base(public_directory) {
 		previous := Directory_Structure {
 			IsFolder: true,
 			Name: "..",
@@ -83,53 +96,60 @@ func LoadFilesFromDirectory(path string) []Directory_Structure {
 	sort.SliceStable(Structure, func(i, j int) bool {
 		return Structure[i].IsFolder
 	})
-	return Structure
+	return Structure, true
 
 }
 
 // Updating the folder name from which one we will load new files.
 // it's like travelling in the filesystem.
-func UpdateFolder(new_name string) string {
+func UpdateFolder(new_name string, session *sessions.Session) string {
 	if new_name == ".." {
 		// if new_name parameter will be empty then we will set back the default one.
 		// splitting the path to delete the last element
-		splitting := strings.Split(current_directory, "/")
+		splitting := strings.Split(session.Values["current_directory"].(string), "/")
 		if len(splitting) != 1 {
 			index := len(splitting) - 1
 			// deleting the last element
 			removing_last := append(splitting[:index], splitting[index+1:]...)
-			// Building a new name
 			new_name = strings.Join(removing_last, "/")
 		}
 	} else {
-		if len(current_directory) == 0 {
-			current_directory = public_directory
+		if len(session.Values["current_directory"].(string)) == 0 {
+			session.Values["current_directory"] = public_directory
 		}
 		if new_name == "." {
 			new_name = public_directory
 		} else {
-			new_name = fmt.Sprintf("%s/%s", current_directory, new_name)
+			new_name = fmt.Sprintf("%s/%s", session.Values["current_directory"], new_name)
 		}
 	}
 
 	// ...now we have to somehow change the folder name and load new list of files.
-	current_directory = new_name
+	// current_directory = new_name
+	session.Values["current_directory"] = new_name
 	// removing all ".." from the path to fix a bug when user can get outside restricted folder
 	new_name = strings.Replace(new_name, "..", "", -1)
-	// new_name = strings.Replace(new_name, ".", "", -1)
+	fmt.Println(session.Values["current_directory"].(string))
 	return new_name
 }
 
 func Filemanager_Index(w http.ResponseWriter, r *http.Request) {
-	current_directory = public_directory
+	session, err := Store.Get(r, "file-manager")
+	if err != nil {
+		panic(err)
+	}
+	session.Values["current_directory"] = public_directory
+	session.Save(r, w)
+
 	// getting the files from directory
-	var files []Directory_Structure = LoadFilesFromDirectory(public_directory)
+	files, _ := LoadFilesFromDirectory(public_directory, session)
+	
 	// passing the files to template
 	data := map[string]interface{}{
 		"Files": files,
 	}
 	tmpl := template.Must(template.ParseFiles("templates/file-list.html"))
-	err := tmpl.Execute(w, data)
+	err = tmpl.Execute(w, data)
 	if err != nil {
 		// this should be disabled in production
 		// ...and all errors should be written in log file.
@@ -139,29 +159,46 @@ func Filemanager_Index(w http.ResponseWriter, r *http.Request) {
 
 // when user will click on the file, that file will be downloaded into his computer.
 func Filemanager_DownloadFile(w http.ResponseWriter, r *http.Request, param martini.Params){
+	session, err := Store.Get(r, "file-manager")
+	if err != nil {
+		panic(err)
+	}
 	var file_name string = filepath.Base(param["name"])
 	w.Header().Set("Content-Disposition", "attachment; filename="+file_name)
 	w.Header().Set("Content-Type", "application/octet-stream")
-	http.ServeFile(w, r, fmt.Sprintf("%s/%s", current_directory, file_name))
+	http.ServeFile(w, r, fmt.Sprintf("%s/%s", session.Values["current_directory"], file_name))
 }
 
 // Changing the folders
 func Filemanager_UpdateFolder(w http.ResponseWriter, r *http.Request){
 	r.ParseForm()
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	session, err := Store.Get(r, "file-manager")
+	if err != nil {
+		panic(err)
+	}
+	if session.Values["current_directory"] == nil {
+		session.Values["current_directory"] = ""
+		session.Save(r, w)
+	}
 	// this should change the folder and update content with the files from new folder.
 	// this will prevent from LFI attacks.
 	folder_name := filepath.Base(r.Form.Get("folder_name"))
 	// updating the folder name.
-	updated_name := UpdateFolder(folder_name)
+	updated_name := UpdateFolder(folder_name, session)
 	// getting the files from a new filder
-	new_files := LoadFilesFromDirectory(updated_name)
+	new_files, exist := LoadFilesFromDirectory(updated_name, session)
+	if !exist {
+		session.Values["current_directory"] = public_directory
+		new_files, _ = LoadFilesFromDirectory(public_directory, session)
+	}
+	session.Save(r, w)
 	// adding previous folder to the list
 	data := map[string]interface{}{
 		"Files": new_files,
 	}
 	tmpl := template.Must(template.ParseFiles("templates/file-list.html"))
-	err := tmpl.ExecuteTemplate(w, "files", data)
+	err = tmpl.ExecuteTemplate(w, "files", data)
 	if err != nil {
 		panic(err)
 	}
