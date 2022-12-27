@@ -204,6 +204,20 @@ func Filemanager_UpdateFolder(w http.ResponseWriter, r *http.Request){
 	}
 }
 
+func Filemanager_DeleteFile(w http.ResponseWriter, r *http.Request, param martini.Params){
+	session, err := Store.Get(r, "file-manager")
+	if err != nil {
+		panic(err)
+	}
+	var file_name string = filepath.Base(param["name"])
+	file_path := fmt.Sprintf("%s/%s", session.Values["current_directory"], file_name)
+
+	if _, err := os.Stat(file_path); !os.IsNotExist(err) {
+		// deleting the file.
+		os.Remove(file_path)
+	} 
+}
+
 func main(){
 	m := martini.Classic()
 	// main page where all the files will appear.
@@ -212,6 +226,8 @@ func main(){
 	m.Get("/folder", Filemanager_UpdateFolder)
 	// downloading the file from the file manager.
 	m.Get("/download/:name", Filemanager_DownloadFile)
+	// deleting the file from the file manager.
+	m.Get("/delete/:name", Filemanager_DeleteFile)
 	// loading the generated css file.
 	m.Get("/assets/css/global.min.css", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "assets/css/global.min.css")
