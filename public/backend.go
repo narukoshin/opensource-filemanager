@@ -148,7 +148,8 @@ func Filemanager_Index(w http.ResponseWriter, r *http.Request) {
 	data := map[string]interface{}{
 		"Files": files,
 	}
-	tmpl := template.Must(template.ParseFiles("templates/file-list.html"))
+	tmpl := template.Must(template.ParseFiles("templates/index/FileManager.html"))
+	tmpl.ParseFiles("templates/index/FileList.html", "templates/index/FileIcons.html")
 	err = tmpl.Execute(w, data)
 	if err != nil {
 		// this should be disabled in production
@@ -197,7 +198,8 @@ func Filemanager_UpdateFolder(w http.ResponseWriter, r *http.Request){
 	data := map[string]interface{}{
 		"Files": new_files,
 	}
-	tmpl := template.Must(template.ParseFiles("templates/file-list.html"))
+	tmpl := template.Must(template.ParseFiles("templates/index/FileManager.html"))
+	tmpl.ParseFiles("templates/index/FileList.html", "templates/index/FileIcons.html")
 	err = tmpl.ExecuteTemplate(w, "files", data)
 	if err != nil {
 		panic(err)
@@ -235,6 +237,14 @@ func main(){
 	// javascript code
 	m.Get("/assets/js/main.min.js", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "assets/js/main.min.js")
+	})
+	// Reading the robots.txt file
+	m.Get("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
+		body, err := ioutil.ReadFile("robots.txt")
+		if err != nil {
+			panic(err)
+		}
+		fmt.Fprint(w, string(body))
 	})
 	// starting the web server
 	http.ListenAndServe(":8080", m)
