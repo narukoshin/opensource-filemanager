@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"filemanager/app/config"
-	"filemanager/app/controllers/files"
+	"filemanager/app/helpers/files"
 	"filemanager/app/templates"
 	"filemanager/app/sessions"
 	"net/http"

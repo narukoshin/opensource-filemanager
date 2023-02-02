@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"filemanager/app/config"
-	"filemanager/app/controllers/builder"
-	"filemanager/app/controllers/files"
+	"filemanager/app/helpers/builder"
+	"filemanager/app/helpers/files"
 	"filemanager/app/templates"
 	"filemanager/app/sessions"
 	"net/http"

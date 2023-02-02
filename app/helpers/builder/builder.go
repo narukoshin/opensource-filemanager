@@ -1,7 +1,7 @@
 package builder
 
 import (
-	"filemanager/app/controllers/files"
+	"filemanager/app/helpers/files"
 	"filemanager/app/sessions"
 	"fmt"
 	"strings"
