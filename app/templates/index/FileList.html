@@ -1,0 +1,18 @@
+{{ define "FileList" }}
+    {{ range .Files }}
+    <div class="row" {{ if not .IsFolder }}onclick="download(this)" download-id="{{.Name}}" {{ else }} onclick="openFolder(this)" folder-id="{{.Name}}" {{end}}>
+        <div class="column-name">
+            {{ template "FileIcons" . }}
+            <div class="file-name">{{ .Name }}</div>
+        </div>
+        <div class="column-name">
+            {{ if .IsFolder }}
+                -
+            {{else}}
+                {{.Size}}
+            {{end}}
+        </div>
+        <div class="column-name">{{.Date}}</div>
+    </div>
+    {{ end }}
+{{ end }}
