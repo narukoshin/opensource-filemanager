@@ -10,7 +10,6 @@
     <form action="/upload/file" method="POST" enctype="multipart/form-data">
         <div class="progress"></div>
         <input type="file" name="myFile" id="">
-        <button>Submit file</button>
     </form>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script>
@@ -35,12 +34,11 @@
             axios.post("/upload/file", form_data, config)
             .then(res => {
                 // Something when the file is uploaded successfully
-                if (res.statusCode == 200){
-                    alert("File uploaded successfully")
-                }
             })
             .catch(err => {
                 // On fail
+                // For debugging purposes we are printing in the console errors.
+                console.log(err)
             })
         }
     </script>
