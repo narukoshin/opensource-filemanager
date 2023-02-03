@@ -27,7 +27,7 @@ func (t *Template) Execute() error {
 	return t.Tmpl.Execute(t.Writer, t.Data)
 }
 
-func (t *Template) AddWriter(w io.Writer) *Template {
+func (t *Template) UseWriter(w io.Writer) *Template {
 	t.Writer = w
 	return t
 }

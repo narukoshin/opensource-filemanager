@@ -53,7 +53,7 @@ func FileManagerHandler(w http.ResponseWriter, r *http.Request) {
 	template.Data = map[string]interface{}{
 		"Files": directory.FolderContents,
 	}
-	err = template.AddWriter(w).Execute()
+	err = template.UseWriter(w).Execute()
 	if err != nil {
 		panic(err)
 	}

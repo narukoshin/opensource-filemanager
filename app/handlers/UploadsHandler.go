@@ -15,7 +15,7 @@ func UploadsHandler(w http.ResponseWriter, r *http.Request) {
 	// setting the template
 	template := templates.Template{}
 	template.FromFolder("upload").Import("upload.html")
-	template.AddWriter(w).Execute()
+	template.UseWriter(w).Execute()
 
 }
 

@@ -80,7 +80,7 @@ func UpdateFolderHandler(w http.ResponseWriter, r *http.Request) {
 	template.Data = map[string]interface{}{
 		"Files": directory.FolderContents,
 	}
-	err = template.AddWriter(w).WithBlock("files").Execute()
+	err = template.UseWriter(w).WithBlock("files").Execute()
 	if err != nil {
 		panic(err)
 	}
