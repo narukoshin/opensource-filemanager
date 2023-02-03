@@ -35,4 +35,12 @@ func init(){
 
 	// Route for downloading the file
 	Martini.Get("/download/:name", handlers.DownloadHandler)
+
+	// Time for the upload
+	Martini.Group("/upload", func (r martini.Router){
+		// Upload system itself
+		r.Get("/", handlers.UploadsHandler)
+		// when user submits the file
+		r.Post("/file", handlers.FileUploadHandler)
+	})
 }
