@@ -8,8 +8,41 @@
 </head>
 <body>
     <form action="/upload/file" method="POST" enctype="multipart/form-data">
+        <div class="progress"></div>
         <input type="file" name="myFile" id="">
         <button>Submit file</button>
     </form>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        // Listening for any update...
+        document.querySelector("input[name='myFile']").onchange = e => {
+            // For showing the upload progress.
+            let progress = document.querySelector(".progress")
+            // Creating the Form and adding file as a data.
+            let form_data = new FormData;
+            form_data.append("myFile", e.target.files[0])
+            // Building the API request for uploading the file.
+            let config = {
+                onUploadProgress: ev => {
+                    // This will be for displaying the upload progress.
+                    let percentage = Math.round(ev.loaded / ev.total * 100)
+                    progress.innerText = `Progress: ${percentage}%\nDo not refresh the page till it reaches 100%`
+                    if (percentage == 100) {
+                        alert("Finshed")
+                    }
+                }
+            }
+            axios.post("/upload/file", form_data, config)
+            .then(res => {
+                // Something when the file is uploaded successfully
+                if (res.statusCode == 200){
+                    alert("File uploaded successfully")
+                }
+            })
+            .catch(err => {
+                // On fail
+            })
+        }
+    </script>
 </body>
 </html>
