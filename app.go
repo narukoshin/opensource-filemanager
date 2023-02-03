@@ -1,10 +1,12 @@
 package main
 
 import (
-	"net/http"
 	"filemanager/app/routes"
+	"filemanager/app/helpers/logger"
 )
 
 func main(){
-	http.ListenAndServe(":8080", routes.Martini)
+	logger.Logger()
+
+	routes.Martini.RunOnAddr(":8080")
 }
