@@ -34,6 +34,7 @@
             axios.post("/upload/file", form_data, config)
             .then(res => {
                 // Something when the file is uploaded successfully
+                console.log(res)
             })
             .catch(err => {
                 // On fail
