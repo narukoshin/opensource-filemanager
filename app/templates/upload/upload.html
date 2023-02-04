@@ -15,32 +15,71 @@
     <script>
         // Listening for any update...
         document.querySelector("input[name='myFile']").onchange = e => {
-            // For showing the upload progress.
-            let progress = document.querySelector(".progress")
-            // Creating the Form and adding file as a data.
-            let form_data = new FormData;
-            form_data.append("myFile", e.target.files[0])
-            // Building the API request for uploading the file.
-            let config = {
-                onUploadProgress: ev => {
-                    // This will be for displaying the upload progress.
-                    let percentage = Math.round(ev.loaded / ev.total * 100)
-                    progress.innerText = `Progress: ${percentage}%\nDo not refresh the page till it reaches 100%`
-                    if (percentage == 100) {
-                        alert("Finshed")
+            let 
+                // Because I use cloudflare
+                // I need to upload file by the chunks that are at least 100MB in size
+                // For the reason that I'm allowed only to upload files that are 100MB large
+                chunkSize = 100 * 1024 * 1024, // 100MB
+
+                // Declaring the file
+                file = e.target.files[0]
+
+                // For showing the upload progress.
+                progress = document.querySelector(".progress"),
+
+                // Creating the Form and adding file as a data.
+                form_data = new FormData,
+
+                // Getting the number of chunks to upload
+                chunks = Math.ceil(file.size / chunkSize)
+
+                // The starting point for the next chunk
+                start = 0
+
+                // Every chunk should be exactly 100MB
+                end = chunkSize
+
+                // Total progress for all the chunks
+                totalProgress = 0
+
+                // Chunks that are uploaded
+                uploadedChunks = 0
+
+            while(start < file.size){
+                let chunk = file.slice(start, end)
+                form_data.append("myFile", chunk)
+                form_data.append("filename", file.name)
+                
+                // Building the API request for uploading the file.
+                let config = {
+                    onUploadProgress: ev => {
+                        // This will be for displaying the upload progress.
+                        let percentage = Math.round(ev.loaded / ev.total * 100)
+                        // Adding the progress for the single chunk to the total progress
+                        totalProgress += percentage
+                        // Updating the uploadedChunks variable
+                        uploadedChunks++
+                         // Calculating the actual progress
+                        totalPercentage = Math.round(totalProgress/uploadedChunks)
+                        progress.innerText = `Progress: ${percentage}%\nDo not refresh the page till it reaches 100%`
+                        if (totalPercentage == 100) {
+                            alert("Finshed")
+                        }
                     }
                 }
+                axios.post("/upload/file", form_data, config)
+                .then(res => {
+                    // Something when the file is uploaded successfully
+                    console.log(res)
+                })
+                .catch(err => {
+                    // On fail
+                    // For debugging purposes we are printing in the console errors.
+                    console.log(err)
+                })
+                start += chunkSize;
+                end = Math.min(file.size, end + chunkSize);
             }
-            axios.post("/upload/file", form_data, config)
-            .then(res => {
-                // Something when the file is uploaded successfully
-                console.log(res)
-            })
-            .catch(err => {
-                // On fail
-                // For debugging purposes we are printing in the console errors.
-                console.log(err)
-            })
         }
     </script>
 </body>
