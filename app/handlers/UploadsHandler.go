@@ -12,6 +12,14 @@ import (
 )
 
 func UploadsHandler(w http.ResponseWriter, r *http.Request) {
+	// Checking if the session is valid
+	// If session is not valid, user will be redirected to the root page
+	session := &sessions.Session{}
+	if _, err := session.RetrieveSession(w, r); err != nil {
+		panic(err)
+	}
+
+
 	r.ParseForm()
 	// setting the template
 	template := templates.Template{}
@@ -23,7 +31,6 @@ func UploadsHandler(w http.ResponseWriter, r *http.Request) {
 func FileUploadHandler(w http.ResponseWriter, r *http.Request){
 	// Getting session ready
 	session := &sessions.Session{}
-	// Sometimes session expires
 	s, err := session.RetrieveSession(w, r)
 	if err != nil {
 		panic(err)
