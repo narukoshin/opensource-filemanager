@@ -84,7 +84,6 @@ func FileUploadHandler(w http.ResponseWriter, r *http.Request){
 			panic(err)
 		}
 	} else {
-		fmt.Fprint(w, "Second one")
 		// If it's not the first blob anymore
 		// In way to create file, we will open it and continue write data.
 		file, err := os.OpenFile(file_path, os.O_WRONLY|os.O_APPEND, 0644)
