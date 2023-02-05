@@ -29,7 +29,6 @@ func Logger(){
 	// add custom prints
 	m.Use(func(c martini.Context) {
 		log.SetPrefix("[martini] ")
-		log.Println(time.Now())
 	})
 
 	log.SetOutput(f)
