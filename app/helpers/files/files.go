@@ -83,7 +83,7 @@ func CalculateActualSize(FloatSize float64) string {
 	switch {
 		case FloatSize < 1000:
 			return fmt.Sprintf("%d b", int(FloatSize))
-		case FloatSize < 10000:
+		case FloatSize < 1000000:
 			return fmt.Sprintf("%.2f kb", float64(FloatSize / kb))
 		case FloatSize < 1000000000:
 			return fmt.Sprintf("%.2f mb", float64(FloatSize / mb))
