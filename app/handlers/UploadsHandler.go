@@ -1,9 +1,9 @@
 package handlers
 
 import (
+	"compress/gzip"
 	"filemanager/app/sessions"
 	"filemanager/app/templates"
-	"fmt"
 	"io"
 
 	"net/http"
@@ -79,8 +79,13 @@ func FileUploadHandler(w http.ResponseWriter, r *http.Request){
 			panic(err)
 		}
 		defer file.Close()
+
+		// compress there
+		gzip := gzip.NewWriter(file)
+		defer gzip.Close()
+
 		// writing our content to the file
-		if _, err := io.Copy(file, blob); err != nil {
+		if _, err := io.Copy(gzip, blob); err != nil {
 			panic(err)
 		}
 	} else {
@@ -92,8 +97,11 @@ func FileUploadHandler(w http.ResponseWriter, r *http.Request){
 		}
 		defer file.Close()
 
+		// compress there
+		gzip := gzip.NewWriter(file)
+		defer gzip.Close()
 		// writing contents to the existing file
-		if _, err := io.Copy(file, blob); err != nil {
+		if _, err := io.Copy(gzip, blob); err != nil {
 			panic(err)
 		}
 	}
