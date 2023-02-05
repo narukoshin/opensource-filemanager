@@ -38,5 +38,6 @@ func init(){
 
 	// Time for the upload
 	Martini.Get("/upload", handlers.UploadsHandler)
+	// Martini.Post("/upload/file", handlers.FileUploadHandler)
 	Martini.Post("/upload/file", handlers.FileUploadHandler)
 }

@@ -3,6 +3,7 @@ package handlers
 import (
 	"filemanager/app/sessions"
 	"filemanager/app/templates"
+	"fmt"
 	"io"
 
 	"net/http"
@@ -20,72 +21,75 @@ func UploadsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func FileUploadHandler(w http.ResponseWriter, r *http.Request){
-	// Inicializing the session
+	// Getting session ready
 	session := &sessions.Session{}
+	// Sometimes session expires
 	s, err := session.RetrieveSession(w, r)
 	if err != nil {
 		panic(err)
 	}
-	// throwing session handler to the black hole
+
+	// Getting current directory
 	current_directory, err := s.Get("current_directory")
 	if err != nil {
 		panic(err)
 	}
 
-	// Allowing file upload till 1GB file size.
-	r.ParseMultipartForm(1024 << 20)
-	file, _, err := r.FormFile("myFile")
+	// Allowing only 100MB per request.
+	err = r.ParseMultipartForm(100 << 20)
 	if err != nil {
 		panic(err)
 	}
-	defer file.Close()
 
-	// Retrieving the file name
-	file_name := filepath.Base(r.FormValue("filename"))
+	// Parsing additional data about the file
+	data := r.Form
 
-	// Building the file path
-	file_path := filepath.Join(current_directory, file_name)
+	// Starting parsing the blob data
+	blob, _, err := r.FormFile("data")
+	if err != nil {
+		panic(err)
+	}
+	defer blob.Close()
 
-	// Checking if the file exists
-	var f *os.File
-	if _, err := os.Stat(file_path); os.IsNotExist(err){
-		// Creating a new file, where we'll upload a new file
-		f, err = os.Create(file_path)
+	// The path of the file where it will be stored
+	file_path := filepath.Join(current_directory, data["filename"][0])
+
+	// We need to figure out which blob it is
+	// If it's the first one, then we will create a new file
+	// If it's the second one, we will update an existing file
+	if data["chunks_current"][0] == "1" {
+		// Checking if the file already exists
+		if _, err := os.Stat(file_path); !os.IsNotExist(err) {
+			// If the file exists, we delete it.
+			err = os.Remove(file_path)
+			if err != nil {
+				panic(err)
+			}
+		}
+		// Creating a new file
+		file, err := os.Create(file_path)
 		if err != nil {
+			panic(err)
+		}
+		defer file.Close()
+		// writing our content to the file
+		if _, err := io.Copy(file, blob); err != nil {
 			panic(err)
 		}
 	} else {
-		// If the file already exists,writing to the file
-		f, err = os.OpenFile(file_path, os.O_WRONLY|os.O_APPEND, 0644)
+		fmt.Fprint(w, "Second one")
+		// If it's not the first blob anymore
+		// In way to create file, we will open it and continue write data.
+		file, err := os.OpenFile(file_path, os.O_WRONLY|os.O_APPEND, 0644)
 		if err != nil {
 			panic(err)
 		}
-	}
-	defer f.Close()
-	
-	// Copying contents from the memory to the file we just created
-	_, err = io.Copy(f, file)
-	if err != nil {
-		panic(err)
-	}
+		defer file.Close()
 
-	/******************** MEMORY LEAK SOLUTION ********************/
-	// Copying contents from the memory to the file we just created
-	// Add buffer to copy the contents to avoid memory leak
-	buf := make([]byte, 1024)
-	for {
-		// read a chunk
-		n, err := file.Read(buf)
-		if err != nil && err != io.EOF {
-			panic(err)
-		}
-		if n == 0 {
-			break
-		}
-
-		// write a chunk
-		if _, err := f.Write(buf[:n]); err != nil {
+		// writing contents to the existing file
+		if _, err := io.Copy(file, blob); err != nil {
 			panic(err)
 		}
 	}
+
 }
