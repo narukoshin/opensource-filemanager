@@ -36,6 +36,10 @@ func FileUploadHandler(w http.ResponseWriter, r *http.Request){
 		panic(err)
 	}
 
+	// Setting headers
+	w.Header().Set("Content-Encoding", "gzip")
+	w.Header().Set("Content-Type", "application/gzip")
+
 	// Getting current directory
 	current_directory, err := s.Get("current_directory")
 	if err != nil {
