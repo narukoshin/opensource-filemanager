@@ -1,7 +1,7 @@
 * {
   margin: 0;
   padding: 0;
-  font-family: Arial, sans-serif;
+  font-family: "Roboto", sans-serif;
 }
 
 body {
@@ -51,15 +51,22 @@ body {
   margin-top: 2rem;
   font-weight: bold;
 }
-.awesome-table .table-body .row:hover {
-  background-color: #0c141d;
-  border-radius: 18px;
+.awesome-table .table-body .no-files {
+  background-color: #192029;
+  padding: 20px;
+  border-radius: 50px;
+  width: 50%;
+  margin: 0 auto;
 }
 .awesome-table .table-body .row {
   padding: 20px 0 20px 0;
   margin-top: 1rem;
   cursor: pointer;
   transition: background-color 300ms ease-in-out;
+}
+.awesome-table .table-body .row:hover {
+  background-color: #0c141d;
+  border-radius: 18px;
 }
 .awesome-table .table-body .row .column-name:first-child {
   flex-grow: 0.8;
