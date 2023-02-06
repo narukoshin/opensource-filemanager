@@ -6,7 +6,6 @@ import (
 	"filemanager/app/sessions"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
