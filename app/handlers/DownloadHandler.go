@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"filemanager/app/sessions"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -45,7 +46,11 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request, params martini.Para
 	// After we read the first 2 bytes of the file
 	// Setting it back to the beginning.
 	f.Seek(0, 0)
-	var returnFile []byte
+
+	// Setting headers
+	w.Header().Set("Content-Disposition", "attachment; filename="+base_name)
+	w.Header().Set("Content-Type", "application/octet-stream")
+
 	if header[0] == 0x1F && header[1] == 0x8B  {
 		// File is compressed
 		gzip, err := gzip.NewReader(f)
@@ -53,22 +58,16 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request, params martini.Para
 			panic(err)
 		}
 		defer gzip.Close()
-		returnFile, err = ioutil.ReadAll(gzip)
+
+		_, err = io.Copy(w, gzip)
 		if err != nil {
 			panic(err)
 		}
 	} else {
 		// File is not compressed
-		returnFile, err = ioutil.ReadAll(f)
+		_, err = io.Copy(w, f)
 		if err != nil {
 			panic(err)
 		}
 	}
-
-	// Setting headers
-	w.Header().Set("Content-Disposition", "attachment; filename="+base_name)
-	w.Header().Set("Content-Type", "application/octet-stream")
-
-	// Sending the uncompressed file
-	w.Write(returnFile)
 }
