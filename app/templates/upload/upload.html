@@ -42,6 +42,19 @@
             let promiseChain = Promise.resolve();
             chunks.forEach((chunk, i) => {
                 promiseChain = promiseChain.then(() => {
+                    // Adding more headers about the chunks
+                    let additionalHeaders = {
+                        ...{
+                                "X-File-Name": file.name,
+                                "X-File-Size": file.size,
+                                "X-Chunk-Number": i + 1,
+                                "X-Total-Chunks": chunks.length,
+                                "Content-Range": `bytes 0-${chunkSize}/${file.size}`
+                            }
+                    }
+
+                    Object.assign(config.headers, additionalHeaders)
+                    console.log(config)
                     uploadedChunks++
                     return axios.post("/upload/file", {
                         chunks_total: chunks.length,
