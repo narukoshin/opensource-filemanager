@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"time"
 )
 
 type Directory_Structure struct {
@@ -44,13 +45,29 @@ func Get(d *Directory_Paths) Directory{
 			Error: err,
 		}
 	}
+
+	// Today's date
+	current_time := time.Now()
+
 	var Structure []Directory_Structure
 	for _, f := range files {
+		var date string
+		diff := int((current_time.Sub(f.ModTime()).Hours() / 24))
+		switch {
+			case diff == 0:
+				date = "today"
+			case diff == 1:
+				date = "yesterday"
+			case diff > 365:
+				date = f.ModTime().Format("02 Jan 2006")
+			default:
+				date = f.ModTime().Format("02 Jan")
+		}
 		d := Directory_Structure{
 			IsFolder: f.IsDir(),
 			Name: f.Name(),
 			Size: CalculateActualSize(float64(f.Size())),
-			Date: f.ModTime().Format("02 Jan"),
+			Date: date,
 			Ext: GetFileExt(f.Name()),
 		}
 		Structure = append(Structure, d)
