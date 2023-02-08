@@ -22,10 +22,7 @@ func Logger(){
 			time.Sleep(time.Until(time.Now().Truncate(24 * time.Hour)))
 			// It will create a new file every day
 			file_name := fmt.Sprintf("logs_%s.log", time.Now().Format("2006_01_02"))
-			f, err := os.OpenFile(filepath.Join(config.LogsFolder, file_name), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
-			if err != nil {
-				panic(err)
-			}
+			f, _ := os.OpenFile(filepath.Join(config.LogsFolder, file_name), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 
 			m.Map(log.New(f, "[martini] ", log.LstdFlags))
 
