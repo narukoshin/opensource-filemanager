@@ -4,6 +4,7 @@ import (
 	"compress/gzip"
 	"filemanager/app/sessions"
 	"filemanager/app/templates"
+	"filemanager/app/config"
 	"io"
 
 	"net/http"
@@ -112,10 +113,16 @@ func FileUploadHandler(w http.ResponseWriter, r *http.Request){
 		if _, err := io.Copy(gzip, blob); err != nil {
 			panic(err)
 		}
-
-		if data["chunks_current"][0] == data["chunks_total"][0] {
-			// Renaming the file to it's original name
-			os.Rename(file_temp, file_path)
+	}
+	
+	// Checking if it's the last chunk
+	if data["chunks_current"][0] == data["chunks_total"][0] {
+		// Renaming the file to it's original name
+		err = os.Rename(file_temp, file_path)
+		// If something happens during file renaming
+		// Writing it to the log
+		if err != nil {
+			panic(err)
 		}
 	}
 
