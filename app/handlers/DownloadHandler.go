@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 
 	"github.com/go-martini/martini"
 )
@@ -48,12 +47,12 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request, params martini.Para
 	f.Seek(0, 0)
 
 	// Retrieving some information about the file
-	fs, _ := os.Stat(file_path)
+	// fs, _ := os.Stat(file_path)
 
 	// Setting headers
 	w.Header().Set("Content-Disposition", "attachment; filename="+base_name)
 	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Header().Set("Content-Length", strconv.FormatInt(fs.Size(), 10))
+	// w.Header().Set("Content-Length", strconv.FormatInt(fs.Size(), 10))
 
 	if header[0] == 0x1F && header[1] == 0x8B  {
 		// File is compressed
