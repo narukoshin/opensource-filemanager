@@ -65,7 +65,7 @@ func Get(d *Directory_Paths) Directory{
 				date = "today"
 			case diff == 1:
 				date = "yesterday"
-			case diff > 365:
+			case current_time.Year() != f.ModTime().Year():
 				date = f.ModTime().Format("02 Jan 2006")
 			default:
 				date = f.ModTime().Format("02 Jan")
