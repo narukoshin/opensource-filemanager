@@ -64,21 +64,25 @@ func FileUploadHandler(w http.ResponseWriter, r *http.Request){
 
 	// The path of the file where it will be stored
 	file_path := filepath.Join(current_directory, data["filename"][0])
+	// But before we store it for the public, we need to write it in the temp file.
+	// To avoid downloading file while it's not complete.
+	file_temp := file_path + ".narump"
 
 	// We need to figure out which blob it is
 	// If it's the first one, then we will create a new file
 	// If it's the second one, we will update an existing file
 	if data["chunks_current"][0] == "1" {
 		// Checking if the file already exists
-		if _, err := os.Stat(file_path); !os.IsNotExist(err) {
+		if _, err := os.Stat(file_temp); !os.IsNotExist(err) {
 			// If the file exists, we delete it.
-			err = os.Remove(file_path)
+			err = os.Remove(file_temp)
 			if err != nil {
 				panic(err)
 			}
 		}
+
 		// Creating a new file
-		file, err := os.Create(file_path)
+		file, err := os.Create(file_temp)
 		if err != nil {
 			panic(err)
 		}
@@ -95,7 +99,7 @@ func FileUploadHandler(w http.ResponseWriter, r *http.Request){
 	} else {
 		// If it's not the first blob anymore
 		// In way to create file, we will open it and continue write data.
-		file, err := os.OpenFile(file_path, os.O_WRONLY|os.O_APPEND, 0644)
+		file, err := os.OpenFile(file_temp, os.O_WRONLY|os.O_APPEND, 0644)
 		if err != nil {
 			panic(err)
 		}
@@ -107,6 +111,11 @@ func FileUploadHandler(w http.ResponseWriter, r *http.Request){
 		// writing contents to the existing file
 		if _, err := io.Copy(gzip, blob); err != nil {
 			panic(err)
+		}
+
+		if data["chunks_current"][0] == data["chunks_total"][0] {
+			// Renaming the file to it's original name
+			os.Rename(file_temp, file_path)
 		}
 	}
 

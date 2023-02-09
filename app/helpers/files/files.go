@@ -51,6 +51,13 @@ func Get(d *Directory_Paths) Directory{
 
 	var Structure []Directory_Structure
 	for _, f := range files {
+		// Skipping file with the extension narump
+		// Because that file extension is for temp files
+		// That are currently uploading to the server
+		// So we don't want to show it yet
+		if GetFileExt(f.Name()) == "narump" {
+			continue
+		}
 		var date string
 		diff := int((current_time.Sub(f.ModTime()).Hours() / 24))
 		switch {
