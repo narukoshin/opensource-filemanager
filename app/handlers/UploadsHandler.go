@@ -66,7 +66,7 @@ func FileUploadHandler(w http.ResponseWriter, r *http.Request){
 	file_path := filepath.Join(current_directory, data["filename"][0])
 	// But before we store it for the public, we need to write it in the temp file.
 	// To avoid downloading file while it's not complete.
-	file_temp := file_path + ".narump"
+	file_temp := file_path + config.TempFileExt
 
 	// We need to figure out which blob it is
 	// If it's the first one, then we will create a new file
