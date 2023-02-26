@@ -56,6 +56,24 @@ func ShowVersion(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(
 		map[string]interface{}{
 			"api_version": Version,
+			"routes": map[string]interface{}{
+				"/folder": map[string]interface{}{
+					"description": "Create or delete the folder",
+					"methods":     []string{"POST", "DELETE"},
+					"args": map[string]interface{}{
+						"folder_name": map[string]interface{}{
+							"description": "Name of the folder that will be created or deleted",
+							"type":        []string{"string"},
+							"required":    true,
+						},
+						"path": map[string]interface{}{
+							"description": "Path to directory in which will be created or deleted the folder",
+							"type":        []string{"string"},
+							"required":    false,
+						},
+					},
+				},
+			},
 			"author": map[string]interface{}{
 				"name":   "Naru Koshin",
 				"role":   "Software Engineer",
@@ -198,7 +216,7 @@ func DeleteFolder(w http.ResponseWriter, r *http.Request) {
 				MessageResponse: MessageResponse{
 					Message: err.Error(),
 					AdditionalDataResponse: AdditionalDataResponse{
-						Time: time.Now().Format("2006-01-02 15:04:05"),
+						Time: time.Now().Format(DefaultTimeFormat),
 					},
 				},
 			},
@@ -216,7 +234,7 @@ func DeleteFolder(w http.ResponseWriter, r *http.Request) {
 				MessageResponse: MessageResponse{
 					Message: err.Error(),
 					AdditionalDataResponse: AdditionalDataResponse{
-						Time: time.Now().Format("2006-01-02 15:04:05"),
+						Time: time.Now().Format(DefaultTimeFormat),
 					},
 				},
 			},
