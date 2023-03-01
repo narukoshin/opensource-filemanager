@@ -17,3 +17,6 @@ add new features that other file managers are not featuring.</p>
 <p>While making this project I gained a new experience that also improved my problem-solving skill and how to work with files.</p>
 <br>
 More coming soon
+
+#
+![image](https://user-images.githubusercontent.com/16736715/222273083-3b5f1e84-c2e0-4e18-983c-a190d25568f9.png)
